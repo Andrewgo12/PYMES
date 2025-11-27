@@ -8,8 +8,8 @@ import { Badge } from '@/components/ui/Badge'
 import { SupplierModal } from '@/components/suppliers/SupplierModal'
 import { SupplierDetailModal } from '@/components/suppliers/SupplierDetailModal'
 import { Plus, Search, Eye, Edit, Trash2, Building2, Users, Globe } from 'lucide-react'
-import { format } from 'date-fns'
-import { es } from 'date-fns/locale'
+// import { format } from 'date-fns'
+// import { es } from 'date-fns/locale'
 
 export function SuppliersPage() {
   const { suppliers, deleteSupplier } = useSuppliersStore()

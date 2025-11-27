@@ -4,7 +4,7 @@ import { Spinner } from './Spinner'
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'default' | 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'warning' | 'error'
-  size?: 'sm' | 'md' | 'lg'
+  size?: 'sm' | 'md' | 'lg' | 'icon'
   loading?: boolean
   isLoading?: boolean
 }
@@ -29,6 +29,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       sm: 'h-8 px-3 text-sm',
       md: 'h-10 px-4',
       lg: 'h-12 px-6 text-lg',
+      icon: 'h-10 w-10',
     }
     
     return (

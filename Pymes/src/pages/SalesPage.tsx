@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useSalesStore, type Sale } from '@/store/salesStore'
-import { useToastStore } from '@/store/toastStore'
+// import { useToastStore } from '@/store/toastStore'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -12,14 +12,17 @@ import { Plus, Search, Eye, DollarSign, ShoppingCart, TrendingUp } from 'lucide-
 import { format, subDays, startOfDay, isSameDay } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts'
+import { Pagination } from '@/components/ui/Pagination'
 
 export function SalesPage() {
   const { sales, getTotalSales } = useSalesStore()
-  const { addToast } = useToastStore()
+  // const { addToast } = useToastStore()
   const [searchTerm, setSearchTerm] = useState('')
   const [isSaleModalOpen, setIsSaleModalOpen] = useState(false)
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
   const [viewingSale, setViewingSale] = useState<Sale | null>(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const ITEMS_PER_PAGE = 10
 
   // Filtrar ventas
   const filteredSales = sales.filter((sale: Sale) => {
@@ -29,6 +32,18 @@ export function SalesPage() {
       sale.items.some(item => item.productName.toLowerCase().includes(searchTerm.toLowerCase()))
     return matchesSearch
   })
+
+  // Pagination Logic
+  const totalPages = Math.ceil(filteredSales.length / ITEMS_PER_PAGE)
+  const paginatedSales = filteredSales.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  )
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value)
+    setCurrentPage(1)
+  }
 
   // Calcular métricas
   const totalSales = getTotalSales()
@@ -160,7 +175,7 @@ export function SalesPage() {
                 <Input
                   placeholder="Buscar por cliente, producto o ID..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={handleSearch}
                   className="pl-8"
                   aria-label="Buscar ventas"
                 />
@@ -183,8 +198,8 @@ export function SalesPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border bg-card">
-                    {filteredSales.length > 0 ? (
-                      filteredSales.map((sale: Sale) => (
+                    {paginatedSales.length > 0 ? (
+                      paginatedSales.map((sale: Sale) => (
                         <tr key={sale.id} className="hover:bg-muted/50 transition-colors">
                           <td className="px-4 py-3 font-mono text-xs">{sale.id.slice(0, 8)}</td>
                           <td className="px-4 py-3">
@@ -227,6 +242,14 @@ export function SalesPage() {
                 </table>
               </div>
             </div>
+            
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              totalItems={filteredSales.length}
+              itemsPerPage={ITEMS_PER_PAGE}
+            />
           </CardContent>
         </Card>
 

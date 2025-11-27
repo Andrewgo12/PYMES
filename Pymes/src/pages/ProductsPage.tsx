@@ -9,6 +9,7 @@ import { formatCurrency } from '@/lib/utils'
 import { exportProductsToExcel, exportProductsToPDF } from '@/lib/exportUtils'
 import { ProductModal } from '@/components/products/ProductModal'
 import { ProductDetailModal } from '@/components/products/ProductDetailModal'
+import { Pagination } from '@/components/ui/Pagination'
 import { 
   Plus, 
   Search, 
@@ -24,6 +25,8 @@ export function ProductsPage() {
   const { addToast } = useToastStore()
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
+  const [currentPage, setCurrentPage] = useState(1)
+  const ITEMS_PER_PAGE = 10
   
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -38,6 +41,23 @@ export function ProductsPage() {
     const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory
     return matchesSearch && matchesCategory
   })
+
+  // Pagination Logic
+  const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE)
+  const paginatedProducts = filteredProducts.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  )
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value)
+    setCurrentPage(1)
+  }
+
+  const handleCategoryChange = (category: string) => {
+    setSelectedCategory(category)
+    setCurrentPage(1)
+  }
 
   // Obtener categorías únicas
   const categories = ['all', ...new Set(products.map((p: Product) => p.category))]
@@ -145,7 +165,7 @@ export function ProductsPage() {
               <Input
                 placeholder="Buscar por nombre o SKU..."
                 value={searchTerm}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
+                onChange={handleSearch}
                 className="pl-8"
                 aria-label="Buscar productos"
               />
@@ -156,7 +176,7 @@ export function ProductsPage() {
                   key={cat}
                   variant={selectedCategory === cat ? 'primary' : 'outline'}
                   size="sm"
-                  onClick={() => setSelectedCategory(cat)}
+                  onClick={() => handleCategoryChange(cat)}
                   className="capitalize whitespace-nowrap"
                   role="tab"
                   aria-selected={selectedCategory === cat}
@@ -183,8 +203,8 @@ export function ProductsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border bg-card">
-                  {filteredProducts.length > 0 ? (
-                    filteredProducts.map((product: Product) => (
+                  {paginatedProducts.length > 0 ? (
+                    paginatedProducts.map((product: Product) => (
                       <tr key={product.id} className="hover:bg-muted/50 transition-colors">
                         <td className="px-4 py-3 font-medium">{product.name}</td>
                         <td className="px-4 py-3 text-muted-foreground font-mono text-xs">{product.sku}</td>
@@ -253,6 +273,14 @@ export function ProductsPage() {
               </table>
             </div>
           </div>
+          
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            totalItems={filteredProducts.length}
+            itemsPerPage={ITEMS_PER_PAGE}
+          />
         </CardContent>
       </Card>
 

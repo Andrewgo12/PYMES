@@ -7,7 +7,7 @@ interface AuthState {
   isAuthenticated: boolean
   login: (email: string, password: string) => boolean
   logout: () => void
-  updateProfile: (data: Partial<Pick<User, 'name' | 'avatar'>>) => void
+  updateProfile: (data: Partial<Pick<User, 'name' | 'email' | 'avatar'>>) => void
   changePassword: (currentPassword: string, newPassword: string) => boolean
 }
 

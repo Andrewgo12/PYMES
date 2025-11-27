@@ -2,7 +2,7 @@ import { useProductsStore } from '@/store/productsStore'
 import { useToastStore } from '@/store/toastStore'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { TrendingUp, DollarSign, FileSpreadsheet, FileText } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
 import { exportReportsToExcel, exportReportsToPDF } from '@/lib/exportUtils'
@@ -139,7 +139,7 @@ export function ReportsPage() {
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                    label={({ name, percent }) => `${name}: ${((percent || 0) * 100).toFixed(0)}%`}
                     outerRadius={80}
                     fill="#8884d8"
                     dataKey="value"
