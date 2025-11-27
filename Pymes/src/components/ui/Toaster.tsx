@@ -28,14 +28,15 @@ export function Toaster() {
   if (!mounted) return null
 
   return createPortal(
-    <div className="fixed top-4 right-4 z-50 flex flex-col gap-2 w-full max-w-sm pointer-events-none">
+    <div className="fixed top-4 right-4 z-[100] flex flex-col gap-2 w-full max-w-sm pointer-events-none">
       {toasts.map((toast) => (
         <div
           key={toast.id}
           className={`
             pointer-events-auto
-            flex items-start gap-3 p-4 rounded-lg shadow-lg bg-card border border-border border-l-4
+            flex items-start gap-3 p-4 rounded-lg shadow-2xl bg-card border-2 border-border border-l-4
             animate-in slide-in-from-right-full fade-in duration-300
+            backdrop-blur-sm
             ${borderColors[toast.type]}
           `}
           role="alert"
