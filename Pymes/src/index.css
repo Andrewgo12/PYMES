@@ -183,4 +183,110 @@
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   }
+
+  /* Enhanced hover animations */
+  .hover-scale {
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .hover-scale:hover {
+    transform: scale(1.05);
+  }
+
+  .hover-scale-sm {
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .hover-scale-sm:hover {
+    transform: scale(1.02);
+  }
+
+  .hover-glow {
+    transition: box-shadow 0.3s ease, transform 0.2s ease;
+  }
+
+  .hover-glow:hover {
+    box-shadow: 0 0 20px rgba(var(--primary), 0.3);
+  }
+
+  .hover-brighten {
+    transition: filter 0.2s ease;
+  }
+
+  .hover-brighten:hover {
+    filter: brightness(1.1);
+  }
+
+  .hover-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .hover-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+  }
+
+  .hover-border-glow {
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .hover-border-glow:hover {
+    border-color: hsl(var(--primary));
+    box-shadow: 0 0 0 1px hsl(var(--primary) / 0.3);
+  }
+
+  /* Button hover enhancements */
+  .hover-button {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .hover-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  .hover-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Table row hover */
+  .hover-row {
+    transition: background-color 0.15s ease, transform 0.15s ease;
+  }
+
+  .hover-row:hover {
+    background-color: hsl(var(--muted) / 0.5);
+  }
+
+  /* Smooth color transitions */
+  .transition-colors-smooth {
+    transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+  }
+
+  /* Respect reduced motion preferences */
+  @media (prefers-reduced-motion: reduce) {
+    .hover-lift,
+    .hover-scale,
+    .hover-scale-sm,
+    .hover-glow,
+    .hover-brighten,
+    .hover-card,
+    .hover-border-glow,
+    .hover-button,
+    .hover-row,
+    .transition-smooth,
+    .transition-colors-smooth {
+      transition: none;
+      animation: none;
+    }
+
+    .hover-lift:hover,
+    .hover-scale:hover,
+    .hover-scale-sm:hover,
+    .hover-card:hover,
+    .hover-button:hover {
+      transform: none;
+    }
+  }
 }
