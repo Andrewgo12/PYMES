@@ -12,7 +12,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = 'default', size = 'md', loading, isLoading, children, disabled, ...props }, ref) => {
     const isLoadingState = loading || isLoading
-    const baseStyles = 'inline-flex items-center justify-center rounded-md font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-95'
+    const baseStyles = 'inline-flex items-center justify-center rounded-md font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-95 hover:scale-105 hover:shadow-lg'
     
     const variants = {
       default: 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm hover:shadow',
