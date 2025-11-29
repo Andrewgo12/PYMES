@@ -5,86 +5,105 @@ import { cn } from '@/lib/utils'
 import { Button } from './Button'
 
 interface ModalProps {
-  isOpen: boolean
-  onClose: () => void
-  title: string
-  children: React.ReactNode
-  footer?: React.ReactNode
-  className?: string
+    isOpen: boolean
+    onClose: () => void
+    title: string
+    children: React.ReactNode
+    footer?: React.ReactNode
+    className?: string
 }
 
-export function Modal({ 
-  isOpen, 
-  onClose, 
-  title, 
-  children, 
-  footer,
-  className 
+export function Modal({
+    isOpen,
+    onClose,
+    title,
+    children,
+    footer,
+    className
 }: ModalProps) {
-  const overlayRef = useRef<HTMLDivElement>(null)
+    const overlayRef = useRef<HTMLDivElement>(null)
+    const [isAnimating, setIsAnimating] = React.useState(false)
 
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
+    useEffect(() => {
+        const handleEscape = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') onClose()
+        }
+
+        if (isOpen) {
+            setIsAnimating(true)
+            document.addEventListener('keydown', handleEscape)
+            document.body.style.overflow = 'hidden'
+        } else {
+            setIsAnimating(false)
+        }
+
+        return () => {
+            document.removeEventListener('keydown', handleEscape)
+            document.body.style.overflow = 'unset'
+        }
+    }, [isOpen, onClose])
+
+    if (!isOpen && !isAnimating) return null
+
+    const handleOverlayClick = (e: React.MouseEvent) => {
+        if (e.target === overlayRef.current) {
+            onClose()
+        }
     }
 
-    if (isOpen) {
-      document.addEventListener('keydown', handleEscape)
-      document.body.style.overflow = 'hidden'
-    }
+    return createPortal(
+        <div
+            ref={overlayRef}
+            className={cn(
+                "fixed inset-0 z-50 flex items-center justify-center p-3 transition-all duration-300",
+                isOpen
+                    ? "bg-background/80 backdrop-blur-md opacity-100"
+                    : "bg-background/0 backdrop-blur-none opacity-0 pointer-events-none"
+            )}
+            onClick={handleOverlayClick}
+        >
+            <div
+                className={cn(
+                    "bg-card text-card-foreground w-full max-w-md rounded-lg shadow-2xl border-2 border-border/50 transition-all duration-300 ease-out",
+                    isOpen
+                        ? "scale-100 opacity-100 translate-y-0"
+                        : "scale-95 opacity-0 translate-y-4",
+                    "hover:border-primary/20",
+                    className
+                )}
+                style={{
+                    boxShadow: '0 20px 40px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05)'
+                }}
+            >
+                {/* Header with gradient background - reduced padding */}
+                <div className="relative flex items-center justify-between p-4 border-b-2 border-border/50 bg-gradient-to-r from-muted/40 to-muted/20">
+                    <h3 className="text-base font-bold tracking-tight">
+                        {title}
+                    </h3>
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 w-7 p-0 rounded-full hover:bg-muted/80 hover:rotate-90 transition-all duration-300"
+                        onClick={onClose}
+                    >
+                        <X className="h-4 w-4" />
+                        <span className="sr-only">Cerrar</span>
+                    </Button>
+                </div>
 
-    return () => {
-      document.removeEventListener('keydown', handleEscape)
-      document.body.style.overflow = 'unset'
-    }
-  }, [isOpen, onClose])
+                {/* Content with better scrolling - reduced padding and max height */}
+                <div className="p-4 max-h-[60vh] overflow-y-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
+                    {children}
+                </div>
 
-  if (!isOpen) return null
-
-  const handleOverlayClick = (e: React.MouseEvent) => {
-    if (e.target === overlayRef.current) {
-      onClose()
-    }
-  }
-
-  return createPortal(
-    <div 
-      ref={overlayRef}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-fade-in"
-      onClick={handleOverlayClick}
-    >
-      <div 
-        className={cn(
-          "bg-white text-gray-900 w-full max-w-lg rounded-lg shadow-2xl border-2 border-gray-300 animate-scale-in",
-          className
-        )}
-      >
-        <div className="flex items-center justify-between p-5 border-b-2 border-gray-200 bg-gradient-to-r from-blue-50 to-transparent">
-          <h3 className="text-xl font-bold text-gray-900">
-            {title}
-          </h3>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0 hover:bg-gray-100"
-            onClick={onClose}
-          >
-            <X className="h-5 w-5 text-gray-700" />
-            <span className="sr-only">Cerrar</span>
-          </Button>
-        </div>
-        
-        <div className="p-6 max-h-[70vh] overflow-y-auto">
-          {children}
-        </div>
-
-        {footer && (
-          <div className="flex items-center justify-end gap-3 p-5 border-t-2 border-gray-200 bg-gray-50">
-            {footer}
-          </div>
-        )}
-      </div>
-    </div>,
-    document.body
-  )
+                {/* Footer with subtle background - reduced padding */}
+                {footer && (
+                    <div className="flex items-center justify-end gap-2 p-4 border-t-2 border-border/50 bg-muted/10">
+                        {footer}
+                    </div>
+                )}
+            </div>
+        </div>,
+        document.body
+    )
 }

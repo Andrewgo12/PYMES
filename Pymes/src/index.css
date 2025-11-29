@@ -32,7 +32,8 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 221.2 83.2% 53.3%;
  
-    --radius: 0.5rem;
+    /* Softer radius for premium feel */
+    --radius: 0.75rem;
 
     --success: 142.1 76.2% 36.3%;
     --warning: 38 92% 50%;
@@ -80,125 +81,115 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
 
 @layer utilities {
-  /* Fade In Animation */
+  /* Premium Animations with Cubic Bezier */
   @keyframes fadeIn {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
 
   @keyframes fadeInUp {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
+    from { 
+      opacity: 0; 
+      transform: translateY(10px) scale(0.98);
     }
-    to {
-      opacity: 1;
-      transform: translateY(0);
+    to { 
+      opacity: 1; 
+      transform: translateY(0) scale(1);
     }
   }
 
   @keyframes fadeInDown {
-    from {
-      opacity: 0;
-      transform: translateY(-10px);
+    from { 
+      opacity: 0; 
+      transform: translateY(-10px) scale(0.98);
     }
-    to {
-      opacity: 1;
-      transform: translateY(0);
+    to { 
+      opacity: 1; 
+      transform: translateY(0) scale(1);
     }
   }
 
   @keyframes slideInRight {
-    from {
-      transform: translateX(100%);
-    }
-    to {
-      transform: translateX(0);
-    }
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
   }
 
   @keyframes slideInLeft {
-    from {
-      transform: translateX(-100%);
-    }
-    to {
-      transform: translateX(0);
-    }
+    from { transform: translateX(-100%); }
+    to { transform: translateX(0); }
   }
 
   @keyframes scaleIn {
-    from {
-      opacity: 0;
-      transform: scale(0.95);
+    from { 
+      opacity: 0; 
+      transform: scale(0.95); 
     }
-    to {
-      opacity: 1;
-      transform: scale(1);
+    to { 
+      opacity: 1; 
+      transform: scale(1); 
     }
   }
 
+  /* Smooth cubic-bezier for premium feel */
   .animate-fade-in {
-    animation: fadeIn 0.3s ease-out;
+    animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .animate-fade-in-up {
-    animation: fadeInUp 0.4s ease-out;
+    animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .animate-fade-in-down {
-    animation: fadeInDown 0.3s ease-out;
+    animation: fadeInDown 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .animate-slide-in-right {
-    animation: slideInRight 0.3s ease-out;
+    animation: slideInRight 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .animate-slide-in-left {
-    animation: slideInLeft 0.3s ease-out;
+    animation: slideInLeft 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .animate-scale-in {
-    animation: scaleIn 0.2s ease-out;
+    animation: scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   /* Smooth transitions */
   .transition-smooth {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   /* Hover effects */
   .hover-lift {
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .hover-lift:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 10px 20px -10px rgba(0, 0, 0, 0.1);
   }
 
   /* Enhanced hover animations */
   .hover-scale {
-    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .hover-scale:hover {
-    transform: scale(1.05);
+    transform: scale(1.02);
   }
 
   .hover-scale-sm {
-    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .hover-scale-sm:hover {
-    transform: scale(1.02);
+    transform: scale(1.01);
   }
 
   .hover-glow {
@@ -206,7 +197,7 @@
   }
 
   .hover-glow:hover {
-    box-shadow: 0 0 20px rgba(var(--primary), 0.3);
+    box-shadow: 0 0 20px rgba(var(--primary), 0.2);
   }
 
   .hover-brighten {
@@ -218,12 +209,12 @@
   }
 
   .hover-card {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .hover-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.15);
   }
 
   .hover-border-glow {
@@ -237,12 +228,12 @@
 
   /* Button hover enhancements */
   .hover-button {
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .hover-button:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.15);
   }
 
   .hover-button:active {
@@ -252,11 +243,11 @@
 
   /* Table row hover */
   .hover-row {
-    transition: background-color 0.15s ease, transform 0.15s ease;
+    transition: background-color 0.2s ease;
   }
 
   .hover-row:hover {
-    background-color: hsl(var(--muted) / 0.5);
+    background-color: hsl(var(--muted) / 0.6);
   }
 
   /* Smooth color transitions */

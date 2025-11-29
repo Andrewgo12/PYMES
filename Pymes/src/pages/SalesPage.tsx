@@ -1,339 +1,230 @@
 import { useState } from 'react'
-import { useSalesStore, type Sale } from '@/store/salesStore'
-// import { useToastStore } from '@/store/toastStore'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { useProductsStore } from '@/store/productsStore'
+import { useSalesStore } from '@/store/salesStore'
+import { useClientsStore } from '@/store/clientsStore'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { Badge } from '@/components/ui/Badge'
-import { SaleModal } from '@/components/sales/SaleModal'
-import { SaleDetailModal } from '@/components/sales/SaleDetailModal'
-import { formatCurrency } from '@/lib/utils'
-import { Plus, Search, Eye, DollarSign, ShoppingCart, TrendingUp } from 'lucide-react'
-import { format, subDays, startOfDay, isSameDay } from 'date-fns'
-import { es } from 'date-fns/locale'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts'
-import { Pagination } from '@/components/ui/Pagination'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { Search, ShoppingCart, Trash2, CreditCard } from 'lucide-react'
+import { useToast } from '@/components/ui/use-toast'
 
 export function SalesPage() {
-  const { sales, getTotalSales } = useSalesStore()
-  // const { addToast } = useToastStore()
-  const [searchTerm, setSearchTerm] = useState('')
-  const [isSaleModalOpen, setIsSaleModalOpen] = useState(false)
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
-  const [viewingSale, setViewingSale] = useState<Sale | null>(null)
-  const [currentPage, setCurrentPage] = useState(1)
-  const ITEMS_PER_PAGE = 10
+    const { products, updateStock } = useProductsStore()
+    const { addSale } = useSalesStore()
+    const { clients } = useClientsStore()
+    const { addToast } = useToast()
 
-  // Filtrar ventas
-  const filteredSales = sales.filter((sale: Sale) => {
-    const matchesSearch = 
-      sale.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      sale.clientName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      sale.items.some(item => item.productName.toLowerCase().includes(searchTerm.toLowerCase()))
-    return matchesSearch
-  })
+    const [searchTerm, setSearchTerm] = useState('')
+    const [cart, setCart] = useState<{ productId: string; quantity: number; price: number; name: string }[]>([])
+    const [selectedClientId, setSelectedClientId] = useState('')
 
-  // Pagination Logic
-  const totalPages = Math.ceil(filteredSales.length / ITEMS_PER_PAGE)
-  const paginatedSales = filteredSales.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  )
-
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value)
-    setCurrentPage(1)
-  }
-
-  // Calcular métricas
-  const totalSales = getTotalSales()
-  const todaySales = sales.filter(s => {
-    const saleDate = new Date(s.createdAt)
-    const today = new Date()
-    return saleDate.toDateString() === today.toDateString()
-  })
-  const todayTotal = todaySales.reduce((sum, s) => sum + s.total, 0)
-
-  // Datos para gráfico de ventas (últimos 7 días)
-  const last7DaysSales = Array.from({ length: 7 }, (_, i) => {
-    const date = startOfDay(subDays(new Date(), 6 - i))
-    const daySales = sales.filter(s => 
-      isSameDay(new Date(s.createdAt), date)
+    const filteredProducts = products.filter(p =>
+        p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.code.toLowerCase().includes(searchTerm.toLowerCase())
     )
-    const total = daySales.reduce((sum, s) => sum + s.total, 0)
-    
-    return {
-      date: format(date, 'EEE', { locale: es }),
-      ventas: total,
-      cantidad: daySales.length
+
+    const addToCart = (product: any) => {
+        if (product.stock <= 0) {
+            addToast({ type: 'error', title: 'Error', message: 'Producto sin stock' })
+            return
+        }
+
+        const existingItem = cart.find(item => item.productId === product.id)
+        if (existingItem) {
+            if (existingItem.quantity >= product.stock) {
+                addToast({ type: 'error', title: 'Error', message: 'No hay suficiente stock' })
+                return
+            }
+            setCart(cart.map(item =>
+                item.productId === product.id
+                    ? { ...item, quantity: item.quantity + 1 }
+                    : item
+            ))
+        } else {
+            setCart([...cart, { productId: product.id, quantity: 1, price: product.price, name: product.name }])
+        }
     }
-  })
 
-  // Datos para gráfico de métodos de pago
-  const paymentMethods = sales.reduce((acc, sale) => {
-    const method = sale.paymentMethod
-    if (!acc[method]) {
-      acc[method] = { method, count: 0, total: 0 }
+    const removeFromCart = (productId: string) => {
+        setCart(cart.filter(item => item.productId !== productId))
     }
-    acc[method].count++
-    acc[method].total += sale.total
-    return acc
-  }, {} as Record<string, { method: string; count: number; total: number }>)
 
-  const paymentData = Object.values(paymentMethods).map(pm => ({
-    name: pm.method.charAt(0).toUpperCase() + pm.method.slice(1),
-    ventas: pm.count,
-    monto: pm.total
-  }))
+    const total = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0)
 
-  const openDetailModal = (sale: Sale) => {
-    setViewingSale(sale)
-    setIsDetailModalOpen(true)
-  }
+    const handleCheckout = () => {
+        if (cart.length === 0) return
 
-  const getPaymentMethodBadge = (method: string) => {
-    switch (method) {
-      case 'efectivo':
-        return <Badge variant="success">Efectivo</Badge>
-      case 'tarjeta':
-        return <Badge variant="secondary">Tarjeta</Badge>
-      case 'transferencia':
-        return <Badge variant="default">Transferencia</Badge>
-      default:
-        return <Badge>{method}</Badge>
+        const client = clients.find(c => c.id === selectedClientId)
+
+        // Map cart items to SaleItem interface
+        const saleItems = cart.map(item => {
+            const product = products.find(p => p.id === item.productId)
+            return {
+                productId: item.productId,
+                productName: item.name,
+                productSku: product?.code || 'N/A',
+                quantity: item.quantity,
+                unitPrice: item.price,
+                subtotal: item.price * item.quantity
+            }
+        })
+
+        const saleData = {
+            clientId: selectedClientId || undefined,
+            clientName: client?.name || 'Cliente General',
+            items: saleItems,
+            total,
+            paymentMethod: 'efectivo' as const, // Default to efectivo for now
+            userId: '1', // Hardcoded for now, should come from auth
+            userName: 'Admin'
+        }
+
+        addSale(saleData)
+
+        // Update stock
+        cart.forEach(item => {
+            const product = products.find(p => p.id === item.productId)
+            if (product) {
+                updateStock(product.id, product.stock - item.quantity)
+            }
+        })
+
+        setCart([])
+        setSelectedClientId('')
+        addToast({ type: 'success', title: 'Venta completada', message: 'La venta se ha registrado correctamente' })
     }
-  }
 
-  return (
-    <div className="space-y-8 animate-fade-in">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Ventas</h2>
-          <p className="text-muted-foreground">
-            Gestiona y registra todas tus transacciones de venta
-          </p>
-        </div>
-        <Button onClick={() => setIsSaleModalOpen(true)} aria-label="Registrar nueva venta">
-          <Plus className="mr-2 h-4 w-4" />
-          Nueva Venta
-        </Button>
-      </div>
+    return (
+        <div className="h-full flex gap-4 animate-fade-in overflow-hidden">
+            {/* Products Section */}
+            <div className="flex-1 flex flex-col min-w-0">
+                <div className="flex items-center justify-between mb-3">
+                    <div>
+                        <h2 className="text-xl font-bold tracking-tight">Punto de Venta</h2>
+                        <p className="text-xs text-muted-foreground">Selecciona productos para vender</p>
+                    </div>
+                    <div className="w-64">
+                        <Input
+                            placeholder="Buscar producto..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            icon={<Search className="w-4 h-4" />}
+                            className="h-9"
+                        />
+                    </div>
+                </div>
 
-      {/* Métricas */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card className="hover-lift">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Ventas</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(totalSales)}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {sales.length} transacciones totales
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="hover-lift">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Ventas Hoy</CardTitle>
-            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(todayTotal)}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {todaySales.length} ventas realizadas
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="hover-lift">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Ticket Promedio</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {formatCurrency(sales.length > 0 ? totalSales / sales.length : 0)}
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 overflow-y-auto pr-2 pb-2 content-start">
+                    {filteredProducts.map((product) => (
+                        <Card
+                            key={product.id}
+                            className="cursor-pointer hover:border-primary transition-colors flex flex-col"
+                            onClick={() => addToCart(product)}
+                        >
+                            <CardContent className="p-3 flex-1 flex flex-col justify-between">
+                                <div>
+                                    <div className="flex justify-between items-start mb-1">
+                                        <span className="text-xs font-mono text-muted-foreground bg-muted px-1.5 py-0.5 rounded border border-border">
+                                            {product.code}
+                                        </span>
+                                        <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${product.stock > 10 ? 'bg-green-100 text-green-700' :
+                                            product.stock > 0 ? 'bg-orange-100 text-orange-700' : 'bg-red-100 text-red-700'
+                                            }`}>
+                                            Stock: {product.stock}
+                                        </span>
+                                    </div>
+                                    <h3 className="font-semibold text-sm line-clamp-2 mb-1">{product.name}</h3>
+                                </div>
+                                <div className="mt-2 text-lg font-bold text-primary">
+                                    ${product.price.toLocaleString()}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Por transacción
-            </p>
-          </CardContent>
-        </Card>
-      </div>
 
-      {/* Layout Único: Tabla a la izquierda (60%), Gráficos apilados a la derecha (40%) */}
-      <div className="grid gap-4 lg:grid-cols-5">
-        {/* Tabla de Ventas - 3 columnas */}
-        <Card className="lg:col-span-3">
-          <CardHeader>
-            <div className="flex flex-col sm:flex-row gap-4 justify-between">
-              <CardTitle>Historial de Ventas</CardTitle>
-              <div className="relative w-full sm:w-72">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar por cliente, producto o ID..."
-                  value={searchTerm}
-                  onChange={handleSearch}
-                  className="pl-8"
-                  aria-label="Buscar ventas"
-                />
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="rounded-md border border-border overflow-hidden">
-              <div className="overflow-x-auto max-h-[600px]">
-                <table className="w-full text-sm text-left">
-                  <thead className="bg-muted text-muted-foreground font-medium sticky top-0">
-                    <tr>
-                      <th className="px-4 py-3">ID</th>
-                      <th className="px-4 py-3">Fecha</th>
-                      <th className="px-4 py-3">Cliente</th>
-                      <th className="px-4 py-3">Items</th>
-                      <th className="px-4 py-3">Pago</th>
-                      <th className="px-4 py-3 text-right">Total</th>
-                      <th className="px-4 py-3 text-right">Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border bg-card">
-                    {paginatedSales.length > 0 ? (
-                      paginatedSales.map((sale: Sale) => (
-                        <tr key={sale.id} className="hover:bg-muted/50 transition-colors">
-                          <td className="px-4 py-3 font-mono text-xs">{sale.id.slice(0, 8)}</td>
-                          <td className="px-4 py-3">
-                            {format(new Date(sale.createdAt), 'dd MMM yyyy HH:mm', { locale: es })}
-                          </td>
-                          <td className="px-4 py-3">
-                            {sale.clientName || <span className="text-muted-foreground italic">Sin cliente</span>}
-                          </td>
-                          <td className="px-4 py-3">
-                            <span className="text-muted-foreground">{sale.items.length} item(s)</span>
-                          </td>
-                          <td className="px-4 py-3">
-                            {getPaymentMethodBadge(sale.paymentMethod)}
-                          </td>
-                          <td className="px-4 py-3 text-right font-bold">
-                            {formatCurrency(sale.total)}
-                          </td>
-                          <td className="px-4 py-3 text-right">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 w-8 p-0"
-                              onClick={() => openDetailModal(sale)}
-                              aria-label={`Ver detalles de venta ${sale.id}`}
-                              title="Ver detalles"
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                          </td>
-                        </tr>
-                      ))
+            {/* Cart Section - Fixed width */}
+            <Card className="w-80 flex flex-col h-full border-l-2 shadow-xl">
+                <CardHeader className="pb-3 border-b bg-muted/20">
+                    <CardTitle className="text-base flex items-center gap-2">
+                        <ShoppingCart className="w-4 h-4" />
+                        Carrito de Venta
+                    </CardTitle>
+                </CardHeader>
+
+                <div className="flex-1 overflow-y-auto p-3 space-y-3">
+                    {cart.length === 0 ? (
+                        <div className="h-full flex flex-col items-center justify-center text-muted-foreground space-y-2 opacity-50">
+                            <ShoppingCart className="w-12 h-12" />
+                            <p className="text-sm">Carrito vacío</p>
+                        </div>
                     ) : (
-                      <tr>
-                        <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
-                          {searchTerm ? 'No se encontraron ventas' : 'No hay ventas registradas'}
-                        </td>
-                      </tr>
+                        cart.map((item) => (
+                            <div key={item.productId} className="flex items-center justify-between bg-muted/30 p-2 rounded-lg border border-border/50">
+                                <div className="flex-1 min-w-0 mr-2">
+                                    <p className="text-sm font-medium truncate">{item.name}</p>
+                                    <p className="text-xs text-muted-foreground">
+                                        {item.quantity} x ${item.price.toLocaleString()}
+                                    </p>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <div className="font-bold text-sm">
+                                        ${(item.quantity * item.price).toLocaleString()}
+                                    </div>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-6 w-6 text-error hover:bg-error/10 hover:text-error"
+                                        onClick={(e) => {
+                                            e.stopPropagation()
+                                            removeFromCart(item.productId)
+                                        }}
+                                    >
+                                        <Trash2 className="w-3 h-3" />
+                                    </Button>
+                                </div>
+                            </div>
+                        ))
                     )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-              totalItems={filteredSales.length}
-              itemsPerPage={ITEMS_PER_PAGE}
-            />
-          </CardContent>
-        </Card>
+                </div>
 
-        {/* Gráficos apilados - 2 columnas */}
-        <div className="lg:col-span-2 space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Ventas Últimos 7 Días</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={250}>
-                <LineChart data={last7DaysSales}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis 
-                    dataKey="date" 
-                    className="text-xs"
-                    tick={{ fill: 'currentColor' }}
-                  />
-                  <YAxis 
-                    className="text-xs"
-                    tick={{ fill: 'currentColor' }}
-                  />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: 'white',
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '6px'
-                    }}
-                    formatter={(value: number) => formatCurrency(value)}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="ventas" 
-                    stroke="hsl(var(--primary))" 
-                    strokeWidth={2}
-                    name="Ventas"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
+                <div className="p-4 bg-muted/20 border-t space-y-3">
+                    <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Subtotal</span>
+                            <span>${total.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between text-lg font-bold">
+                            <span>Total</span>
+                            <span className="text-primary">${total.toLocaleString()}</span>
+                        </div>
+                    </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Métodos de Pago</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={paymentData}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis 
-                    dataKey="name" 
-                    className="text-xs"
-                    tick={{ fill: 'currentColor' }}
-                  />
-                  <YAxis 
-                    className="text-xs"
-                    tick={{ fill: 'currentColor' }}
-                  />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: 'white',
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '6px'
-                    }}
-                  />
-                  <Bar dataKey="ventas" fill="hsl(var(--primary))" name="Cantidad" />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
+                    <div className="space-y-2 pt-2">
+                        <select
+                            className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                            value={selectedClientId}
+                            onChange={(e) => setSelectedClientId(e.target.value)}
+                        >
+                            <option value="">Cliente General</option>
+                            {clients.map(client => (
+                                <option key={client.id} value={client.id}>{client.name}</option>
+                            ))}
+                        </select>
+
+                        <Button
+                            className="w-full"
+                            size="lg"
+                            disabled={cart.length === 0}
+                            onClick={handleCheckout}
+                        >
+                            <CreditCard className="w-4 h-4 mr-2" />
+                            Completar Venta
+                        </Button>
+                    </div>
+                </div>
+            </Card>
         </div>
-      </div>
-
-      <SaleModal
-        isOpen={isSaleModalOpen}
-        onClose={() => setIsSaleModalOpen(false)}
-      />
-
-      <SaleDetailModal
-        isOpen={isDetailModalOpen}
-        onClose={() => setIsDetailModalOpen(false)}
-        sale={viewingSale}
-      />
-    </div>
-  )
+    )
 }

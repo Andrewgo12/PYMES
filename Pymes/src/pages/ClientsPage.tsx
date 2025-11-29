@@ -20,7 +20,7 @@ export function ClientsPage() {
 
   // Filtrar clientes
   const filteredClients = clients.filter((client: Client) => {
-    const matchesSearch = 
+    const matchesSearch =
       client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       client.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       client.phone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -61,23 +61,23 @@ export function ClientsPage() {
   const countriesCount = new Set(clients.map(c => c.country).filter(Boolean)).size
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Clientes</h2>
-          <p className="text-muted-foreground">
+          <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">Clientes</h2>
+          <p className="text-sm md:text-base text-muted-foreground">
             Gestiona tu base de clientes y contactos
           </p>
         </div>
-        <Button onClick={() => setIsModalOpen(true)} aria-label="Agregar nuevo cliente">
+        <Button onClick={() => setIsModalOpen(true)} aria-label="Agregar nuevo cliente" className="w-full sm:w-auto">
           <Plus className="mr-2 h-4 w-4" />
           Nuevo Cliente
         </Button>
       </div>
 
       {/* Métricas */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
+      <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
+        <Card className="border-2">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Clientes</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
@@ -90,7 +90,7 @@ export function ClientsPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-2">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Con Email</CardTitle>
             <Building className="h-4 w-4 text-muted-foreground" />
@@ -103,7 +103,7 @@ export function ClientsPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-2">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Países</CardTitle>
             <Globe className="h-4 w-4 text-muted-foreground" />
@@ -118,10 +118,10 @@ export function ClientsPage() {
       </div>
 
       {/* Tabla de Clientes */}
-      <Card>
+      <Card className="border-2">
         <CardHeader>
           <div className="flex flex-col sm:flex-row gap-4 justify-between">
-            <CardTitle>Lista de Clientes</CardTitle>
+            <CardTitle className="text-lg">Lista de Clientes</CardTitle>
             <div className="relative w-full sm:w-72">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
@@ -134,87 +134,85 @@ export function ClientsPage() {
             </div>
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="rounded-md border border-border overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left">
-                <thead className="bg-muted text-muted-foreground font-medium">
-                  <tr>
-                    <th className="px-4 py-3">Nombre</th>
-                    <th className="px-4 py-3">Email</th>
-                    <th className="px-4 py-3">Teléfono</th>
-                    <th className="px-4 py-3">Ubicación</th>
-                    <th className="px-4 py-3">Tax ID</th>
-                    <th className="px-4 py-3 text-right">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border bg-card">
-                  {filteredClients.length > 0 ? (
-                    filteredClients.map((client: Client) => (
-                      <tr key={client.id} className="hover:bg-muted/50 transition-colors">
-                        <td className="px-4 py-3 font-medium">{client.name}</td>
-                        <td className="px-4 py-3 text-muted-foreground">
-                          {client.email || <span className="italic">No especificado</span>}
-                        </td>
-                        <td className="px-4 py-3">{client.phone || '-'}</td>
-                        <td className="px-4 py-3">
-                          {client.city && client.country ? (
-                            <Badge variant="secondary">
-                              {client.city}, {client.country}
-                            </Badge>
-                          ) : (
-                            <span className="text-muted-foreground italic">-</span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 font-mono text-xs">
-                          {client.taxId || '-'}
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 w-8 p-0"
-                              onClick={() => openDetailModal(client)}
-                              aria-label={`Ver detalles de ${client.name}`}
-                              title="Ver detalles"
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 w-8 p-0"
-                              onClick={() => handleEdit(client)}
-                              aria-label={`Editar ${client.name}`}
-                              title="Editar"
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 w-8 p-0 text-error hover:text-error"
-                              onClick={() => handleDelete(client)}
-                              aria-label={`Eliminar ${client.name}`}
-                              title="Eliminar"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
-                        {searchTerm ? 'No se encontraron clientes' : 'No hay clientes registrados'}
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm text-left">
+              <thead className="bg-muted/50 text-muted-foreground font-medium border-b border-border">
+                <tr>
+                  <th className="px-4 py-3 whitespace-nowrap">Nombre</th>
+                  <th className="px-4 py-3 whitespace-nowrap">Email</th>
+                  <th className="px-4 py-3 whitespace-nowrap">Teléfono</th>
+                  <th className="px-4 py-3 whitespace-nowrap">Ubicación</th>
+                  <th className="px-4 py-3 whitespace-nowrap">Tax ID</th>
+                  <th className="px-4 py-3 text-right whitespace-nowrap">Acciones</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border bg-card">
+                {filteredClients.length > 0 ? (
+                  filteredClients.map((client: Client) => (
+                    <tr key={client.id} className="hover:bg-muted/30 transition-colors">
+                      <td className="px-4 py-3 font-medium">{client.name}</td>
+                      <td className="px-4 py-3 text-muted-foreground">
+                        {client.email || <span className="italic">No especificado</span>}
+                      </td>
+                      <td className="px-4 py-3">{client.phone || '-'}</td>
+                      <td className="px-4 py-3">
+                        {client.city && client.country ? (
+                          <Badge variant="secondary">
+                            {client.city}, {client.country}
+                          </Badge>
+                        ) : (
+                          <span className="text-muted-foreground italic">-</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 font-mono text-xs">
+                        {client.taxId || '-'}
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                            onClick={() => openDetailModal(client)}
+                            aria-label={`Ver detalles de ${client.name}`}
+                            title="Ver detalles"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                            onClick={() => handleEdit(client)}
+                            aria-label={`Editar ${client.name}`}
+                            title="Editar"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 text-error hover:text-error"
+                            onClick={() => handleDelete(client)}
+                            aria-label={`Eliminar ${client.name}`}
+                            title="Eliminar"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </td>
                     </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
+                      {searchTerm ? 'No se encontraron clientes' : 'No hay clientes registrados'}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
         </CardContent>
       </Card>

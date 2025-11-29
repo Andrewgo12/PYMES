@@ -25,6 +25,7 @@ interface ProductsState {
   deleteProduct: (id: string) => void
   getProduct: (id: string) => Product | undefined
   adjustStock: (id: string, adjustment: number, reason: string) => void
+  resetToInitialData: () => void
 }
 
 const initialProducts: Product[] = [
@@ -445,6 +446,9 @@ export const useProductsStore = create<ProductsState>()(
       },
       getProduct: (id) => {
         return get().products.find((p) => p.id === id)
+      },
+      resetToInitialData: () => {
+        set({ products: initialProducts })
       },
     }),
     {

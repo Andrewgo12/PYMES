@@ -3,20 +3,15 @@ import { Sidebar } from './Sidebar'
 
 export function DashboardLayout() {
   return (
-    <div className="flex min-h-screen bg-background">
-      {/* Sidebar - ocupa su propio espacio */}
-      <div className="hidden lg:block w-64 flex-shrink-0">
+    <div className="flex h-screen overflow-hidden bg-background">
+      {/* Fixed Sidebar - always visible, never scrolls */}
+      <div className="fixed left-0 top-0 h-screen">
         <Sidebar />
       </div>
-      
-      {/* Sidebar móvil - overlay */}
-      <div className="lg:hidden">
-        <Sidebar />
-      </div>
-      
-      {/* Contenido principal - se adapta al espacio restante */}
-      <main className="flex-1 min-w-0">
-        <div className="p-4 lg:p-6 max-w-full h-full">
+
+      {/* Main content - offset by sidebar width, fills remaining space */}
+      <main className="flex-1 ml-64 overflow-y-auto">
+        <div className="p-4 max-w-full h-full">
           <Outlet />
         </div>
       </main>

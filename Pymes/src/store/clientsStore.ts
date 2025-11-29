@@ -21,6 +21,7 @@ interface ClientsState {
   updateClient: (id: string, client: Partial<Client>) => void
   deleteClient: (id: string) => void
   getClient: (id: string) => Client | undefined
+  resetToInitialData: () => void
 }
 
 const initialClients: Client[] = [
@@ -153,6 +154,10 @@ export const useClientsStore = create<ClientsState>()(
 
       getClient: (id) => {
         return get().clients.find((c) => c.id === id)
+      },
+
+      resetToInitialData: () => {
+        set({ clients: initialClients })
       },
     }),
     {

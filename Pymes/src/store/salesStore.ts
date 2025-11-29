@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { useProductsStore } from './productsStore'
 
 export interface SaleItem {
   productId: string
@@ -30,6 +31,7 @@ interface SalesState {
   getSalesByDateRange: (startDate: Date, endDate: Date) => Sale[]
   getTotalSales: () => number
   clearSales: () => void
+  resetToInitialData: () => void
 }
 
 // Datos iniciales de ventas de ejemplo
@@ -243,36 +245,47 @@ export const useSalesStore = create<SalesState>()(
   persist(
     (set, get) => ({
       sales: initialSales,
-      
+
       addSale: (saleData) => {
         const newSale: Sale = {
           ...saleData,
           id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
           createdAt: new Date().toISOString(),
         }
-        set((state) => ({ 
-          sales: [newSale, ...state.sales] 
+
+        // Deduct stock from products
+        const productsStore = useProductsStore.getState()
+        newSale.items.forEach(item => {
+          productsStore.adjustStock(item.productId, -item.quantity, `Venta #${newSale.id}`)
+        })
+
+        set((state) => ({
+          sales: [newSale, ...state.sales]
         }))
         return newSale.id
       },
-      
+
       getSale: (id) => {
         return get().sales.find((s) => s.id === id)
       },
-      
+
       getSalesByDateRange: (startDate, endDate) => {
         return get().sales.filter((s) => {
           const saleDate = new Date(s.createdAt)
           return saleDate >= startDate && saleDate <= endDate
         })
       },
-      
+
       getTotalSales: () => {
         return get().sales.reduce((sum, sale) => sum + sale.total, 0)
       },
-      
+
       clearSales: () => {
         set({ sales: [] })
+      },
+
+      resetToInitialData: () => {
+        set({ sales: initialSales })
       },
     }),
     {

@@ -21,6 +21,7 @@ interface SuppliersState {
   updateSupplier: (id: string, supplier: Partial<Supplier>) => void
   deleteSupplier: (id: string) => void
   getSupplier: (id: string) => Supplier | undefined
+  resetToInitialData: () => void
 }
 
 const initialSuppliers: Supplier[] = [
@@ -126,6 +127,10 @@ export const useSuppliersStore = create<SuppliersState>()(
 
       getSupplier: (id) => {
         return get().suppliers.find((s) => s.id === id)
+      },
+
+      resetToInitialData: () => {
+        set({ suppliers: initialSuppliers })
       },
     }),
     {

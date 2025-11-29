@@ -25,7 +25,7 @@ export function InventoryPage() {
   const lowStockProducts = products.filter((p: Product) => p.stock <= p.minStock)
   const recentMovements = getRecentMovements(10)
 
-  const filteredProducts = products.filter(p => 
+  const filteredProducts = products.filter(p =>
     p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.location?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -47,7 +47,7 @@ export function InventoryPage() {
     const product = products.find(p => p.id === productId)
     if (product) {
       adjustStock(productId, adjustment, reason || 'Ajuste manual')
-      
+
       addToast({
         type: 'success',
         title: 'Stock actualizado',
@@ -64,21 +64,21 @@ export function InventoryPage() {
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">Inventario</h2>
-        <p className="text-muted-foreground">
+        <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">Inventario</h2>
+        <p className="text-sm md:text-base text-muted-foreground">
           Control de existencias y alertas de reabastecimiento.
         </p>
       </div>
 
       {/* Layout Único: Sidebar de Alertas (30%) + Contenido Principal (70%) */}
       <div className="grid gap-6 lg:grid-cols-12 items-start">
-        
+
         {/* Sidebar - Alertas y Acciones Rápidas */}
         <div className="lg:col-span-4 space-y-6">
           {/* Tarjeta de Acción Rápida */}
-          <Card className="bg-primary/5 border-primary/20 hover-lift">
-            <CardHeader>
-              <CardTitle className="text-primary flex items-center gap-2">
+          <Card className="bg-primary/5 border-primary/20">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-primary flex items-center gap-2 text-lg">
                 <PackagePlus className="h-5 w-5" />
                 Acciones Rápidas
               </CardTitle>
@@ -94,12 +94,12 @@ export function InventoryPage() {
           </Card>
 
           {/* Alertas de Stock Bajo */}
-          <Card className="border-l-4 border-l-error hover-lift">
-            <CardHeader>
+          <Card className="border-l-4 border-l-error">
+            <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <AlertTriangle className="h-5 w-5 text-error" />
-                  <CardTitle>Alertas de Stock</CardTitle>
+                  <CardTitle className="text-lg">Alertas de Stock</CardTitle>
                 </div>
                 <Badge variant="error" className="rounded-full px-2">
                   {lowStockProducts.length}
@@ -120,7 +120,7 @@ export function InventoryPage() {
                           Crítico
                         </Badge>
                       </div>
-                      
+
                       <div className="flex items-center justify-between mt-2">
                         <div className="text-xs">
                           <span className="text-muted-foreground">Stock: </span>
@@ -128,9 +128,9 @@ export function InventoryPage() {
                           <span className="text-muted-foreground mx-1">/</span>
                           <span className="text-muted-foreground">Min: {product.minStock}</span>
                         </div>
-                        <Button 
-                          size="sm" 
-                          variant="ghost" 
+                        <Button
+                          size="sm"
+                          variant="ghost"
                           className="h-6 text-xs text-error hover:text-error hover:bg-error/10 px-2"
                           onClick={() => openAdjustmentModal(product.id)}
                         >
@@ -152,13 +152,13 @@ export function InventoryPage() {
 
         {/* Contenido Principal */}
         <div className="lg:col-span-8 space-y-6">
-          
+
           {/* Movimientos Recientes */}
-          <Card className="hover-lift">
-            <CardHeader>
+          <Card>
+            <CardHeader className="pb-3">
               <div className="flex items-center gap-2">
                 <ArrowRightLeft className="h-5 w-5 text-primary" />
-                <CardTitle>Movimientos Recientes</CardTitle>
+                <CardTitle className="text-lg">Movimientos Recientes</CardTitle>
               </div>
             </CardHeader>
             <CardContent>
@@ -167,12 +167,12 @@ export function InventoryPage() {
                   recentMovements.map((movement: Movement) => {
                     const isIncrease = movement.quantity > 0
                     const Icon = isIncrease ? ArrowUp : ArrowDown
-                    
+
                     let badgeVariant: 'default' | 'success' | 'error' | 'warning' = 'default'
                     if (movement.type === 'PURCHASE' || movement.type === 'RETURN') badgeVariant = 'success'
                     if (movement.type === 'SALE') badgeVariant = 'error'
                     if (movement.type === 'ADJUSTMENT') badgeVariant = 'warning'
-                    
+
                     return (
                       <div key={movement.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg border border-border hover:bg-muted/50 transition-colors">
                         <div className="flex items-center gap-3">
@@ -217,10 +217,10 @@ export function InventoryPage() {
           </Card>
 
           {/* Tabla de Inventario */}
-          <Card className="hover-lift">
+          <Card>
             <CardHeader>
               <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-                <CardTitle>Estado del Inventario</CardTitle>
+                <CardTitle className="text-lg">Estado del Inventario</CardTitle>
                 <div className="relative w-full sm:w-64">
                   <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -232,58 +232,65 @@ export function InventoryPage() {
                 </div>
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="rounded-md border border-border overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm text-left">
-                    <thead className="bg-muted text-muted-foreground font-medium">
-                      <tr>
-                        <th className="px-4 py-3">Producto</th>
-                        <th className="px-4 py-3">Ubicación</th>
-                        <th className="px-4 py-3 text-center">Mínimo</th>
-                        <th className="px-4 py-3 text-center">Actual</th>
-                        <th className="px-4 py-3 text-center">Estado</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border bg-card">
-                      {paginatedProducts.length > 0 ? (
-                        paginatedProducts.map((product: Product) => (
-                          <tr key={product.id} className="hover:bg-muted/50 transition-colors">
-                            <td className="px-4 py-3 font-medium">
-                              {product.name}
-                              <div className="text-xs text-muted-foreground font-normal">{product.sku}</div>
-                            </td>
-                            <td className="px-4 py-3 text-muted-foreground">{product.location || 'N/A'}</td>
-                            <td className="px-4 py-3 text-center text-muted-foreground">{product.minStock}</td>
-                            <td className="px-4 py-3 text-center font-bold">{product.stock}</td>
-                            <td className="px-4 py-3 text-center">
-                              {product.stock <= product.minStock ? (
-                                <Badge variant="error" className="text-[10px]">Crítico</Badge>
-                              ) : (
-                                <Badge variant="success" className="text-[10px]">OK</Badge>
-                              )}
-                            </td>
-                          </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
-                            No se encontraron productos
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm text-left">
+                  <thead className="bg-muted/50 text-muted-foreground font-medium border-b border-border">
+                    <tr>
+                      <th className="px-4 py-3 pl-6 whitespace-nowrap">Producto</th>
+                      <th className="px-4 py-3 whitespace-nowrap">Ubicación</th>
+                      <th className="px-4 py-3 text-center whitespace-nowrap">Mínimo</th>
+                      <th className="px-4 py-3 text-center whitespace-nowrap">Actual</th>
+                      <th className="px-4 py-3 text-center pr-6 whitespace-nowrap">Estado</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border bg-card">
+                    {paginatedProducts.length > 0 ? (
+                      paginatedProducts.map((product: Product) => (
+                        <tr key={product.id} className="hover:bg-muted/30 transition-colors">
+                          <td className="px-4 py-3 pl-6 font-medium">
+                            {product.name}
+                            <div className="text-xs text-muted-foreground font-normal font-mono">{product.sku}</div>
+                          </td>
+                          <td className="px-4 py-3 text-muted-foreground">
+                            <Badge variant="secondary" className="font-normal">
+                              {product.location || 'N/A'}
+                            </Badge>
+                          </td>
+                          <td className="px-4 py-3 text-center text-muted-foreground">{product.minStock}</td>
+                          <td className="px-4 py-3 text-center font-bold text-base">{product.stock}</td>
+                          <td className="px-4 py-3 text-center pr-6">
+                            {product.stock <= product.minStock ? (
+                              <Badge variant="error" className="shadow-sm">Crítico</Badge>
+                            ) : (
+                              <Badge variant="success" className="shadow-sm">OK</Badge>
+                            )}
                           </td>
                         </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={5} className="px-4 py-12 text-center text-muted-foreground">
+                          <div className="flex flex-col items-center justify-center gap-2">
+                            <Search className="h-8 w-8 text-muted-foreground/30" />
+                            <p>No se encontraron productos</p>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
               </div>
-              
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={setCurrentPage}
-                totalItems={filteredProducts.length}
-                itemsPerPage={ITEMS_PER_PAGE}
-              />
+
+              <div className="p-4 border-t border-border">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                  totalItems={filteredProducts.length}
+                  itemsPerPage={ITEMS_PER_PAGE}
+                />
+              </div>
             </CardContent>
           </Card>
 

@@ -1,81 +1,47 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { useProductsStore } from './productsStore'
 
 export interface PurchaseItem {
   productId: string
   productName: string
-  productSku: string
   quantity: number
-  unitCost: number
+  unitPrice: number
   subtotal: number
 }
 
 export interface Purchase {
   id: string
-  supplierId: string
   supplierName: string
   items: PurchaseItem[]
   total: number
   status: 'pending' | 'received' | 'cancelled'
-  notes?: string
-  userId?: string
-  userName?: string
   createdAt: string
   receivedAt?: string
+  notes?: string
 }
 
 interface PurchasesState {
   purchases: Purchase[]
-  addPurchase: (purchase: Omit<Purchase, 'id' | 'createdAt' | 'status'>) => string
+  addPurchase: (purchase: Omit<Purchase, 'id' | 'status' | 'createdAt'>) => string
   updatePurchaseStatus: (id: string, status: Purchase['status']) => void
   getPurchase: (id: string) => Purchase | undefined
   getRecentPurchases: (limit?: number) => Purchase[]
+  resetToInitialData: () => void
 }
 
+// Datos de prueba iniciales
 const initialPurchases: Purchase[] = [
   {
-    id: 'pur-001',
-    supplierId: '1',
-    supplierName: 'Tech Distributors Inc.',
+    id: 'PUR-001',
+    supplierName: 'Distribuidora Central',
     items: [
-      { productId: '1', productName: 'Laptop Dell XPS 15', productSku: 'DELL-XPS15-001', quantity: 5, unitCost: 1100.00, subtotal: 5500.00 },
-      { productId: '4', productName: 'Monitor LG UltraWide 34"', productSku: 'LG-UW34-001', quantity: 3, unitCost: 450.00, subtotal: 1350.00 }
+      { productId: '1', productName: 'Laptop HP Pavilion', quantity: 5, unitPrice: 12000, subtotal: 60000 }
     ],
-    total: 6850.00,
+    total: 60000,
     status: 'received',
-    notes: 'Pedido inicial de stock',
-    userId: '1',
-    userName: 'Admin',
-    createdAt: new Date('2024-01-05').toISOString(),
-    receivedAt: new Date('2024-01-10').toISOString(),
-  },
-  {
-    id: 'pur-002',
-    supplierId: '2',
-    supplierName: 'Global Electronics Supply',
-    items: [
-      { productId: '5', productName: 'iPhone 15 Pro 256GB', productSku: 'APPL-IP15P-256', quantity: 10, unitCost: 1050.00, subtotal: 10500.00 }
-    ],
-    total: 10500.00,
-    status: 'received',
-    userId: '1',
-    userName: 'Admin',
-    createdAt: new Date('2024-02-25').toISOString(),
-    receivedAt: new Date('2024-03-01').toISOString(),
-  },
-  {
-    id: 'pur-003',
-    supplierId: '1',
-    supplierName: 'Tech Distributors Inc.',
-    items: [
-      { productId: '10', productName: 'Disco SSD Samsung 1TB', productSku: 'SAMS-SSD-1TB-EVO', quantity: 20, unitCost: 85.00, subtotal: 1700.00 }
-    ],
-    total: 1700.00,
-    status: 'pending',
-    notes: 'Esperando reposición',
-    userId: '1',
-    userName: 'Admin',
-    createdAt: new Date().toISOString(),
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5).toISOString(), // Hace 5 días
+    receivedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString()
   }
 ]
 
@@ -87,7 +53,7 @@ export const usePurchasesStore = create<PurchasesState>()(
       addPurchase: (purchaseData) => {
         const newPurchase: Purchase = {
           ...purchaseData,
-          id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+          id: `PUR-${Date.now().toString().slice(-6)}`,
           status: 'pending',
           createdAt: new Date().toISOString(),
         }
@@ -98,14 +64,24 @@ export const usePurchasesStore = create<PurchasesState>()(
       },
 
       updatePurchaseStatus: (id, status) => {
+        const purchase = get().purchases.find(p => p.id === id)
+
+        // If status changing to received, add stock
+        if (purchase && status === 'received' && purchase.status !== 'received') {
+          const productsStore = useProductsStore.getState()
+          purchase.items.forEach(item => {
+            productsStore.adjustStock(item.productId, item.quantity, `Compra #${purchase.id} recibida`)
+          })
+        }
+
         set((state) => ({
           purchases: state.purchases.map((p) =>
             p.id === id
-              ? { 
-                  ...p, 
-                  status, 
-                  receivedAt: status === 'received' ? new Date().toISOString() : p.receivedAt 
-                }
+              ? {
+                ...p,
+                status,
+                receivedAt: status === 'received' ? new Date().toISOString() : p.receivedAt
+              }
               : p
           ),
         }))
@@ -119,6 +95,10 @@ export const usePurchasesStore = create<PurchasesState>()(
         return get().purchases
           .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
           .slice(0, limit)
+      },
+
+      resetToInitialData: () => {
+        set({ purchases: initialPurchases })
       },
     }),
     {
