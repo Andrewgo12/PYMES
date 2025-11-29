@@ -34,7 +34,7 @@ export function Toaster() {
           key={toast.id}
           className={`
             pointer-events-auto
-            flex items-start gap-3 p-4 rounded-lg shadow-lg bg-card border border-border border-l-4
+            flex items-start gap-3 p-4 rounded-lg shadow-xl bg-white dark:bg-slate-900 border border-border border-l-4
             animate-in slide-in-from-right-full fade-in duration-300
             ${borderColors[toast.type]}
           `}

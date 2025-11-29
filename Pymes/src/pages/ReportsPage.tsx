@@ -15,7 +15,7 @@ export function ReportsPage() {
 
   // Calcular métricas reales
   const totalValue = products.reduce((acc, p) => acc + (p.price * p.stock), 0)
-  
+
   // Valor por categoría
   const valueByCategory = products.reduce((acc: Record<string, number>, p) => {
     acc[p.category] = (acc[p.category] || 0) + (p.price * p.stock)
@@ -62,20 +62,30 @@ export function ReportsPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Reportes</h2>
-          <p className="text-muted-foreground">
+          <h2 className="text-3xl font-bold tracking-tight">
+            Reportes
+          </h2>
+          <p className="text-muted-foreground mt-1">
             Análisis visual del rendimiento y estado del inventario.
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={handleExportExcel}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExportExcel}
+          >
             <FileSpreadsheet className="mr-2 h-4 w-4" />
             Excel
           </Button>
-          <Button variant="outline" size="sm" onClick={handleExportPDF}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExportPDF}
+          >
             <FileText className="mr-2 h-4 w-4" />
             PDF
           </Button>
@@ -84,10 +94,12 @@ export function ReportsPage() {
 
       <div className="grid gap-6 md:grid-cols-2">
         {/* Valor del Inventario por Categoría */}
-        <Card>
+        <Card className="hover-lift">
           <CardHeader>
             <div className="flex items-center gap-2">
-              <DollarSign className="h-5 w-5 text-primary" />
+              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <DollarSign className="h-5 w-5 text-primary" />
+              </div>
               <CardTitle>Valor por Categoría</CardTitle>
             </div>
           </CardHeader>
@@ -96,17 +108,17 @@ export function ReportsPage() {
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={barChartData}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis 
-                    dataKey="categoria" 
+                  <XAxis
+                    dataKey="categoria"
                     className="text-xs"
                     tick={{ fill: 'currentColor' }}
                   />
-                  <YAxis 
+                  <YAxis
                     className="text-xs"
                     tick={{ fill: 'currentColor' }}
                   />
-                  <Tooltip 
-                    contentStyle={{ 
+                  <Tooltip
+                    contentStyle={{
                       backgroundColor: 'hsl(var(--card))',
                       border: '1px solid hsl(var(--border))',
                       borderRadius: '6px'
@@ -123,10 +135,12 @@ export function ReportsPage() {
         </Card>
 
         {/* Distribución de Stock */}
-        <Card>
+        <Card className="hover-lift">
           <CardHeader>
             <div className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-primary" />
+              <div className="h-8 w-8 rounded-lg bg-success/10 flex items-center justify-center">
+                <TrendingUp className="h-5 w-5 text-success" />
+              </div>
               <CardTitle>Distribución de Stock</CardTitle>
             </div>
           </CardHeader>
@@ -148,8 +162,8 @@ export function ReportsPage() {
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip 
-                    contentStyle={{ 
+                  <Tooltip
+                    contentStyle={{
                       backgroundColor: 'hsl(var(--card))',
                       border: '1px solid hsl(var(--border))',
                       borderRadius: '6px'
@@ -164,28 +178,30 @@ export function ReportsPage() {
         </Card>
 
         {/* Resumen General */}
-        <Card className="md:col-span-2">
+        <Card className="md:col-span-2 hover-lift">
           <CardHeader>
             <div className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-primary" />
+              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <TrendingUp className="h-5 w-5 text-primary" />
+              </div>
               <CardTitle>Resumen Financiero</CardTitle>
             </div>
           </CardHeader>
           <CardContent>
             <div className="grid sm:grid-cols-3 gap-4 text-center">
-              <div className="p-4 bg-muted/30 rounded-lg">
+              <div className="p-4 bg-primary/5 rounded-lg">
                 <p className="text-sm text-muted-foreground mb-1">Valor Total Inventario</p>
                 <p className="text-2xl font-bold text-primary">{formatCurrency(totalValue)}</p>
               </div>
-              <div className="p-4 bg-muted/30 rounded-lg">
+              <div className="p-4 bg-success/5 rounded-lg">
                 <p className="text-sm text-muted-foreground mb-1">Categoría Más Valiosa</p>
-                <p className="text-2xl font-bold text-primary capitalize">
+                <p className="text-2xl font-bold text-success capitalize">
                   {categories.sort((a, b) => valueByCategory[b] - valueByCategory[a])[0] || '-'}
                 </p>
               </div>
-              <div className="p-4 bg-muted/30 rounded-lg">
+              <div className="p-4 bg-warning/5 rounded-lg">
                 <p className="text-sm text-muted-foreground mb-1">Promedio por Producto</p>
-                <p className="text-2xl font-bold text-primary">
+                <p className="text-2xl font-bold text-warning">
                   {formatCurrency(products.length ? totalValue / products.length : 0)}
                 </p>
               </div>

@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/Input'
 import { Badge } from '@/components/ui/Badge'
 import { ClientModal } from '@/components/clients/ClientModal'
 import { ClientDetailModal } from '@/components/clients/ClientDetailModal'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { Plus, Search, Eye, Edit, Trash2, Users, Globe, Building } from 'lucide-react'
 
 export function ClientsPage() {
@@ -17,6 +18,8 @@ export function ClientsPage() {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
   const [editingClient, setEditingClient] = useState<Client | null>(null)
   const [viewingClient, setViewingClient] = useState<Client | null>(null)
+  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false)
+  const [clientToDelete, setClientToDelete] = useState<Client | null>(null)
 
   // Filtrar clientes
   const filteredClients = clients.filter((client: Client) => {
@@ -35,14 +38,21 @@ export function ClientsPage() {
   }
 
   const handleDelete = (client: Client) => {
-    if (window.confirm(`¿Estás seguro de eliminar al cliente "${client.name}"?`)) {
-      deleteClient(client.id)
+    setClientToDelete(client)
+    setIsConfirmDialogOpen(true)
+  }
+
+  const confirmDelete = () => {
+    if (clientToDelete) {
+      deleteClient(clientToDelete.id)
       addToast({
         type: 'success',
         title: 'Cliente eliminado',
-        message: `${client.name} ha sido eliminado correctamente.`
+        message: `${clientToDelete.name} ha sido eliminado correctamente.`
       })
+      setClientToDelete(null)
     }
+    setIsConfirmDialogOpen(false)
   }
 
   const handleCloseModal = () => {
@@ -227,6 +237,17 @@ export function ClientsPage() {
         isOpen={isDetailModalOpen}
         onClose={() => setIsDetailModalOpen(false)}
         client={viewingClient}
+      />
+
+      <ConfirmDialog
+        isOpen={isConfirmDialogOpen}
+        onClose={() => setIsConfirmDialogOpen(false)}
+        onConfirm={confirmDelete}
+        title="Eliminar Cliente"
+        message={`¿Estás seguro de eliminar al cliente "${clientToDelete?.name}"? Esta acción no se puede deshacer.`}
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        variant="danger"
       />
     </div>
   )

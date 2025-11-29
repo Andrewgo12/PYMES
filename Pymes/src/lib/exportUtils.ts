@@ -18,14 +18,14 @@ export function exportProductsToExcel(products: Product[]) {
   const ws = XLSX.utils.json_to_sheet(data)
   const wb = XLSX.utils.book_new()
   XLSX.utils.book_append_sheet(wb, ws, 'Productos')
-  
+
   XLSX.writeFile(wb, `productos_${new Date().toISOString().split('T')[0]}.xlsx`)
 }
 
 // Export products to PDF
 export function exportProductsToPDF(products: Product[]) {
   const doc = new jsPDF()
-  
+
   doc.setFontSize(18)
   doc.text('Reporte de Productos', 14, 22)
   doc.setFontSize(11)
@@ -66,7 +66,7 @@ export function exportInventoryToExcel(products: Product[]) {
   const ws = XLSX.utils.json_to_sheet(data)
   const wb = XLSX.utils.book_new()
   XLSX.utils.book_append_sheet(wb, ws, 'Inventario')
-  
+
   XLSX.writeFile(wb, `inventario_${new Date().toISOString().split('T')[0]}.xlsx`)
 }
 
@@ -77,7 +77,7 @@ export function exportReportsToPDF(
   totalValue: number
 ) {
   const doc = new jsPDF()
-  
+
   doc.setFontSize(18)
   doc.text('Reporte de Análisis', 14, 22)
   doc.setFontSize(11)
@@ -123,6 +123,83 @@ export function exportReportsToExcel(
   const ws = XLSX.utils.json_to_sheet(data)
   const wb = XLSX.utils.book_new()
   XLSX.utils.book_append_sheet(wb, ws, 'Análisis')
-  
+
   XLSX.writeFile(wb, `reporte_${new Date().toISOString().split('T')[0]}.xlsx`)
+}
+
+// Export inventory to PDF
+export function exportInventoryToPDF(products: Product[]) {
+  const doc = new jsPDF()
+
+  doc.setFontSize(18)
+  doc.text('Reporte de Inventario', 14, 22)
+  doc.setFontSize(11)
+  doc.text(`Fecha: ${new Date().toLocaleDateString('es-ES')}`, 14, 30)
+
+  const tableData = products.map(p => [
+    p.name,
+    p.sku,
+    p.location || 'N/A',
+    p.stock.toString(),
+    p.minStock.toString(),
+    p.stock <= p.minStock ? 'Crítico' : 'OK',
+    `€${(p.price * p.stock).toFixed(2)}`
+  ])
+
+  autoTable(doc, {
+    head: [['Producto', 'SKU', 'Ubicación', 'Stock', 'Mín.', 'Estado', 'Valor']],
+    body: tableData,
+    startY: 35,
+    styles: { fontSize: 8 },
+    headStyles: { fillColor: [59, 130, 246] },
+  })
+
+  doc.save(`inventario_${new Date().toISOString().split('T')[0]}.pdf`)
+}
+
+// Export purchases to Excel
+export function exportPurchasesToExcel(purchases: any[]) {
+  const data = purchases.map(p => ({
+    'ID': p.id,
+    'Fecha': new Date(p.createdAt).toLocaleDateString('es-ES'),
+    'Proveedor': p.supplierName,
+    'Items': p.items.length,
+    'Estado': p.status === 'received' ? 'Recibido' : p.status === 'pending' ? 'Pendiente' : 'Cancelado',
+    'Total': p.total
+  }))
+
+  const ws = XLSX.utils.json_to_sheet(data)
+  const wb = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(wb, ws, 'Compras')
+
+  XLSX.writeFile(wb, `compras_${new Date().toISOString().split('T')[0]}.xlsx`)
+}
+
+// Export purchases to PDF
+export function exportPurchasesToPDF(purchases: any[]) {
+  const doc = new jsPDF()
+
+  doc.setFontSize(18)
+  doc.text('Reporte de Compras', 14, 22)
+  doc.setFontSize(11)
+  doc.text(`Fecha: ${new Date().toLocaleDateString('es-ES')}`, 14, 30)
+
+  const tableData = purchases.map(p => [
+    p.id.slice(0, 8),
+    new Date(p.createdAt).toLocaleDateString('es-ES'),
+    p.supplierName,
+    p.items.length.toString(),
+    p.status === 'received' ? 'Recibido' : p.status === 'pending' ? 'Pendiente' : 'Cancelado',
+    `€${p.total.toFixed(2)}`
+  ])
+
+  autoTable(doc, {
+    head: [['ID', 'Fecha', 'Proveedor', 'Items', 'Estado', 'Total']],
+    body: tableData,
+    startY: 35,
+    styles: { fontSize: 9 },
+    headStyles: { fillColor: [59, 130, 246] },
+  })
+
+  doc.save(`compras_${new Date().toISOString().split('T')[0]}.pdf`)
 }

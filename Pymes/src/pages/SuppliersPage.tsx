@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/Input'
 import { Badge } from '@/components/ui/Badge'
 import { SupplierModal } from '@/components/suppliers/SupplierModal'
 import { SupplierDetailModal } from '@/components/suppliers/SupplierDetailModal'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { Plus, Search, Eye, Edit, Trash2, Building2, Users, Globe } from 'lucide-react'
 // import { format } from 'date-fns'
 // import { es } from 'date-fns/locale'
@@ -19,10 +20,12 @@ export function SuppliersPage() {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
   const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null)
   const [viewingSupplier, setViewingSupplier] = useState<Supplier | null>(null)
+  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false)
+  const [supplierToDelete, setSupplierToDelete] = useState<Supplier | null>(null)
 
   // Filtrar proveedores
   const filteredSuppliers = suppliers.filter((supplier: Supplier) => {
-    const matchesSearch = 
+    const matchesSearch =
       supplier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       supplier.contactName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       supplier.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -37,14 +40,21 @@ export function SuppliersPage() {
   }
 
   const handleDelete = (supplier: Supplier) => {
-    if (window.confirm(`¿Estás seguro de eliminar al proveedor "${supplier.name}"?`)) {
-      deleteSupplier(supplier.id)
+    setSupplierToDelete(supplier)
+    setIsConfirmDialogOpen(true)
+  }
+
+  const confirmDelete = () => {
+    if (supplierToDelete) {
+      deleteSupplier(supplierToDelete.id)
       addToast({
         type: 'success',
         title: 'Proveedor eliminado',
-        message: `${supplier.name} ha sido eliminado correctamente.`
+        message: `${supplierToDelete.name} ha sido eliminado correctamente.`
       })
+      setSupplierToDelete(null)
     }
+    setIsConfirmDialogOpen(false)
   }
 
   const handleCloseModal = () => {
@@ -226,6 +236,17 @@ export function SuppliersPage() {
         isOpen={isDetailModalOpen}
         onClose={() => setIsDetailModalOpen(false)}
         supplier={viewingSupplier}
+      />
+
+      <ConfirmDialog
+        isOpen={isConfirmDialogOpen}
+        onClose={() => setIsConfirmDialogOpen(false)}
+        onConfirm={confirmDelete}
+        title="Eliminar Proveedor"
+        message={`¿Estás seguro de eliminar al proveedor "${supplierToDelete?.name}"? Esta acción no se puede deshacer.`}
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        variant="danger"
       />
     </div>
   )

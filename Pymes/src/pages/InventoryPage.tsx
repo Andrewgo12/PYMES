@@ -11,6 +11,8 @@ import { formatDistance } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { Input } from '@/components/ui/Input'
 import { Pagination } from '@/components/ui/Pagination'
+import { FileSpreadsheet, FileText } from 'lucide-react'
+import { exportInventoryToExcel, exportInventoryToPDF } from '@/lib/exportUtils'
 
 export function InventoryPage() {
   const { products, adjustStock } = useProductsStore()
@@ -61,13 +63,43 @@ export function InventoryPage() {
     setIsAdjustmentModalOpen(true)
   }
 
+  const handleExportExcel = () => {
+    exportInventoryToExcel(filteredProducts)
+    addToast({
+      type: 'success',
+      title: 'Exportado a Excel',
+      message: 'El inventario se ha descargado correctamente.'
+    })
+  }
+
+  const handleExportPDF = () => {
+    exportInventoryToPDF(filteredProducts)
+    addToast({
+      type: 'success',
+      title: 'Exportado a PDF',
+      message: 'El inventario se ha descargado correctamente.'
+    })
+  }
+
   return (
     <div className="space-y-6 animate-fade-in">
-      <div>
-        <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">Inventario</h2>
-        <p className="text-sm md:text-base text-muted-foreground">
-          Control de existencias y alertas de reabastecimiento.
-        </p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">Inventario</h2>
+          <p className="text-sm md:text-base text-muted-foreground">
+            Control de existencias y alertas de reabastecimiento.
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={handleExportExcel}>
+            <FileSpreadsheet className="mr-2 h-4 w-4" />
+            Excel
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleExportPDF}>
+            <FileText className="mr-2 h-4 w-4" />
+            PDF
+          </Button>
+        </div>
       </div>
 
       {/* Layout Único: Sidebar de Alertas (30%) + Contenido Principal (70%) */}
